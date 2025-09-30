@@ -28,10 +28,10 @@ DATA = '''1,initial design,150,[],Design
 4,permanent resident introduction,[13]'''
 START_DATE = datetime(2074, 10, 12) #Year, Month, Day
 colors = {
-    'Research': '#4a90e2',        
-    'Framework': '#f39c12',      
-    'Analysis': '#2ecc71',       
-    'Evaluation': '#e74c3c', 
+    'Design': '#4a90e2',        
+    'Manufacturing': '#f39c12',      
+    'Construction': '#2ecc71',       
+    'Habitation': '#e74c3c', 
     'Milestone': 'rgb(255, 140, 0)'
 } 
 
