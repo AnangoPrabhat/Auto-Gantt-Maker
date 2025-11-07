@@ -5,7 +5,6 @@ import plotly.io as pio
 
 from collections import defaultdict
 
-
 CHART_TITLE = '''Astoria Construction'''
 DATA = '''1,initial design,150,[],Design
 2,design finalisation,60,[1],Design
@@ -26,14 +25,14 @@ DATA = '''1,initial design,150,[],Design
 2,alpha ring completed,[8]
 3,IOC reached,[11]
 4,permanent resident introduction,[13]'''
-START_DATE = datetime(2074, 10, 12) #Year, Month, Day
-colors = {
+COLORS = {
     'Design': '#4a90e2',        
-    'Manufacturing': '#f39c12',      
-    'Construction': '#2ecc71',       
-    'Habitation': '#e74c3c', 
-    'Milestone': 'rgb(255, 140, 0)'
+    'Manufacturing': '#f39c12',
+    'Construction': '#2ecc71',      
+    'Habitation': '#e74c3c',   
+    'Milestone': 'rgb(255, 140, 0)'  
 } 
+START_DATE = datetime(2074, 10, 12)
 
 
 def parse_dependencies(dep_str):
@@ -51,7 +50,6 @@ def parse_line(line):
         raise ValueError(f"Invalid format - missing brackets: {line}")
     
     dependencies_str = line[start_idx:end_idx + 1]
-    
     other_parts = (line[:start_idx] + line[end_idx + 1:]).strip()
     parts = [p.strip() for p in other_parts.split(',') if p.strip()]
     
@@ -67,7 +65,7 @@ def parse_gantt_csv(csv_content):
             
         parts, dependencies_str = parse_line(line)
         
-        if len(parts) == 4:  # Task format
+        if len(parts) == 4: 
             task_id = int(parts[0])
             tasks[task_id] = {
                 'name': parts[1],
@@ -75,7 +73,7 @@ def parse_gantt_csv(csv_content):
                 'dependencies': parse_dependencies(dependencies_str),
                 'section': parts[3]
             }
-        elif len(parts) == 2:  # Milestone format
+        elif len(parts) == 2:  
             milestone_id = int(parts[0])
             milestones[milestone_id] = {
                 'name': parts[1],
@@ -154,11 +152,11 @@ def create_gantt_tasks(tasks, milestones, task_dates, start_date):
     for task_id, task in tasks.items():
         dates = task_dates[task_id]
         result.append(dict(
-    Task=task['name'],
-    Start=(dates['start'] - start_date).days,
-    Finish=(dates['finish'] - start_date).days, 
-    Resource=task['section']
-))
+            Task=task['name'],
+            Start=dates['start'],
+            Finish=dates['finish'],
+            Resource=task['section']
+        ))
     
     for milestone_id, milestone in milestones.items():
         if not milestone['required_tasks']:
@@ -166,15 +164,16 @@ def create_gantt_tasks(tasks, milestones, task_dates, start_date):
         milestone_date = max(task_dates[task_id]['finish'] 
                            for task_id in milestone['required_tasks'])
         result.append(dict(
-    Task=f"★ {milestone['name']}",
-    Start=(milestone_date - start_date).days, 
-    Finish=(milestone_date - start_date).days, 
-    Resource='Milestone'
-))
+            Task=f"★ {milestone['name']}",
+            Start=milestone_date,
+            Finish=milestone_date,
+            Resource='Milestone'
+        ))
     
     return result
 
 def create_gantt_chart():
+    colors = COLORS
     start_date = START_DATE
     csv_content = DATA
     tasks, milestones = parse_gantt_csv(csv_content)
@@ -194,23 +193,18 @@ def create_gantt_chart():
                          showgrid_x=True,
                          showgrid_y=False,
                          bar_width=0.45)
-    unique_days = sorted(list(set([task['Start'] for task in tasks] + [task['Finish'] for task in tasks])))
+    
+    unique_dates = sorted(list(set([task['Start'] for task in tasks] + [task['Finish'] for task in tasks])))
 
-    fig.update_xaxes(
-        ticktext=[str(day) for day in unique_days], 
-        tickvals=unique_days,
-        tickangle=45,
-        tickfont=dict(size=18),
-        tickmode='array'
-    )
    
     fig.update_xaxes(
-        ticktext=[date for date in unique_days],
-        tickvals=unique_days,
+        ticktext=[date.strftime('%b %Y') for date in unique_dates],
+        tickvals=unique_dates,
         tickangle=45,
         tickfont=dict(size=18),
         tickmode='array'
     )
+    
     annotations = []
     for task in tasks:
         mid_date = task['Start']
@@ -234,6 +228,8 @@ def create_gantt_chart():
                                      showarrow=False,
                                      font=dict(color='black', size=14),xanchor='left'),
                                )
+
+
 
     fig['layout']['annotations'] = annotations
 
@@ -259,6 +255,7 @@ def create_gantt_chart():
     )
 
     return fig
+
 
 chart = create_gantt_chart()
 chart.show()
